@@ -4,8 +4,6 @@ This module adds some helper functions to your Powershell `$PROFILE` for interac
 
 ## Setup
 
-- Find the path to your Powershell profile with `Write-Host (Split-Path -Path "$PROFILE" -Parent)`.
-  - To open a file explorer directly to that path, use `ii (Split-Path -Path "$PROFILE" -Parent)`
 - Run this command to get a list of all the locations Powershell loads modules from: `$env:PSModulePath -Split ';'`
   - This will show you a list of paths, like `C:\Users\<your-username>\Documents\PowerShell\Modules` and `C:\Program Files\Powershell\Modules` or `C:\Program Files\Powershell\Modules` (for Powershell 7 modules).
 - Copy the [`AzureHelpers` directory](./AzureHelpers/) to one of these locations.
