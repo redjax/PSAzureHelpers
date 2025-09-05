@@ -1,7 +1,5 @@
 # AzureHelpers
 
-This module is part of the PowerShell monorepo.
-
 ## Installation
 
 ```powershell
