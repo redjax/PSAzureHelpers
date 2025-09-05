@@ -87,9 +87,14 @@ function Search-KVSecret {
         try {
             $Value = az keyvault secret show --vault-name $Vault --name $ExactMatch --query "value" -o tsv 2>$null
             Write-Host $Value -ForegroundColor DarkYellow -NoNewline
-            Set-Clipboard -Value $Value
-            Write-Host " - Value copied to clipboard" -ForegroundColor Green
-            return
+            
+            try{
+                Set-Clipboard -Value $Value
+                Write-Host " - Value copied to clipboard" -ForegroundColor Green
+                return
+            } catch {
+                Write-Error "Failed to save secret value to clipboard: $($_.Exception.Message)"
+                return
         } catch {
             Write-Error "Failed to retrieve secret value or copy to clipboard." -ForegroundColor Red
             return
@@ -105,8 +110,10 @@ function Search-KVSecret {
     }
     elseif ($PartialMatches.Count -eq 1) {
         Write-Host "Only one secret found matching - pulling value for '$($PartialMatches[0])' from '$Vault'" -ForegroundColor Green
+        
         $Value = $(az keyvault secret show --vault-name $Vault --name $PartialMatches[0] --query "value" -o tsv 2>$null)
         Write-Host $Value -ForegroundColor DarkYellow -NoNewline
+        
         try {
             Set-Clipboard -Value $Value
 
@@ -127,12 +134,29 @@ function Search-KVSecret {
 
     $Choice = Read-Host "Enter the number of the secret to view its value"
     [int]$ChoiceInt = -1
+    
     if ([int]::TryParse($Choice, [ref]$ChoiceInt) -and $ChoiceInt -ge 0 -and $ChoiceInt -lt $PartialMatches.Count) {
         Write-Host "Pulling value for $($PartialMatches[$ChoiceInt]) from $Vault" -ForegroundColor Green
-        $Value = $(az keyvault secret show --vault-name $Vault --name $PartialMatches[$ChoiceInt] --query "value" -o tsv 2>$null)
-        Write-Host $Value -ForegroundColor DarkYellow -NoNewline
-        Set-Clipboard -Value $Value
-        Write-Host " - Value copied to clipboard" -ForegroundColor Green
+        
+        try {
+            $Value = $(az keyvault secret show --vault-name $Vault --name $PartialMatches[$ChoiceInt] --query "value" -o tsv 2>$null)
+            Write-Host $Value -ForegroundColor DarkYellow -NoNewline
+        } catch {
+            Write-Error "Failed to get secret value from Azure Key Vault: $($_.Exception.Message)"
+            return
+        }
+        
+        try {
+            Set-Clipboard -Value $Value
+
+            Write-Host " - Value copied to clipboard" -ForegroundColor Green
+            return
+        } catch {
+            Write-Error "Failed to copy value to clipboard. Please check your clipboard settings." -ForegroundColor Red
+            Write-Host "Secret value: $Value" -ForegroundColor Yellow
+            return
+        }
+
     }
     else {
         Write-Host "Invalid choice. No secret will be retrieved."
